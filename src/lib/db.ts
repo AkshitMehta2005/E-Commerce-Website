@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
 
-const mongoDbUrl = process.env.MONGODB_URL
-if(!mongoDbUrl){
-    throw new Error("DB Error") 
-}
-
-let cached = global.mongoose
+let cached = (global as any).mongoose
 
 if(!cached){
-    cached = global.mongoose = {conn:null,promise:null}
+    cached = (global as any).mongoose = {conn:null,promise:null}
 }
 
 const connectDb = async ()=>{
+    const mongoDbUrl = process.env.MONGODB_URL
+    if(!mongoDbUrl){
+        throw new Error("DB Error")
+    }
+
     if(cached.conn){
         return cached.conn
     }
@@ -19,10 +19,11 @@ const connectDb = async ()=>{
         cached.promise = mongoose.connect(mongoDbUrl).then((conn)=>conn.connection)
     }
     try {
-        const conn = await cached.promise
-        return conn
+        cached.conn = await cached.promise
+        return cached.conn
     } catch (error) {
-        console.log(error)
+        cached.promise = null
+        throw error
     }
 }
 
