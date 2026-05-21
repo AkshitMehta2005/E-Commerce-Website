@@ -1,6 +1,20 @@
 import mongoose from "mongoose";
 import dns from "node:dns";
 
+let cached = (global as any).mongoose
+
+if(!cached){
+    cached = (global as any).mongoose = {conn:null,promise:null}
+}
+
+const connectDb = async ()=>{
+    const mongoDbUrl = process.env.MONGODB_URL
+    if(!mongoDbUrl){
+        throw new Error("DB Error")
+    }
+
+    if(cached.conn){
+        return cached.conn
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 let cached = global.mongoose;
@@ -31,6 +45,11 @@ const connectDb = async () => {
     }
 
     try {
+        cached.conn = await cached.promise
+        return cached.conn
+    } catch (error) {
+        cached.promise = null
+        throw error
         const conn = await cached.promise;
         cached.conn = conn;
         return conn;
