@@ -3,17 +3,16 @@ import dns from "node:dns";
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
-let cached = global.mongoose;
+let cached = (global as any).mongoose;
 
 if (!cached) {
-    cached = global.mongoose = {
+    cached = (global as any).mongoose = {
         conn: null,
         promise: null,
     };
 }
 
 const connectDb = async () => {
-    // Get env variable at runtime
     const mongoDbUrl = process.env.MONGODB_URL;
 
     if (!mongoDbUrl) {
@@ -36,7 +35,6 @@ const connectDb = async () => {
         return conn;
     } catch (error) {
         cached.promise = null;
-        console.error("MongoDB connection error:", error);
         throw error;
     }
 };
